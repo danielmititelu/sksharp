@@ -2,7 +2,7 @@
 {
     public class SkypeToken
     {
-        public DateTime ExpiresIn => DateTime.Now.AddSeconds(expiresIn);
+        public DateTime ExpireDate => DateTime.Now.AddSeconds(expiresIn);
         public string Token => skypetoken;
 
         public string skypetoken { get; set; }
