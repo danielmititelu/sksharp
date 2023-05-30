@@ -15,20 +15,19 @@ namespace Skypeulica
             skype.Login(config.User, config.Password);
 
             var room = skype.GetRoomByName(config.BuildGroupChatName);
-            room.SendMessage("am pornit pe tricicleta");
-
-
+            // room.GetEvents();
+            room.SendMessage("Ping pong protocol has started");
+            var botUsername = skype.GetUsername();
             Task.Run(() =>
             {
                 do
                 {
                     var messages = room.GetRecentMessages();
-
                     foreach (var message in messages)
                     {
-                        if (message.content.Contains("ping"))
+                        if (!message.from.Contains(botUsername) && message.content.Contains("ping"))
                         {
-                            room.SendMessage($"pong  to : {message.content}");
+                            room.SendMessage($"pong to : {message.content}");
                         }
                     }
 

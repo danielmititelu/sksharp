@@ -51,6 +51,11 @@ namespace Skypeulica
             return new Chat(_registrationToken.RawLocation, conv, _userDetails.username, _registrationToken.RegistrationToken);
         }
 
+        public string GetUsername()
+        {
+            return _userDetails.username;
+        }
+
         private void LoadChats()
         {
             _chats = SkypeApi.GetAllChats(_registrationToken.RegistrationToken);

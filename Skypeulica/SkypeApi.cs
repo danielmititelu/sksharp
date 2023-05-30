@@ -91,7 +91,7 @@ namespace Skypeulica
             return JsonConvert.DeserializeObject<Chats>(response);
         }
 
-        public static RecentMessagesData GetRecentMessages(string msgsHost, string threadId, string registrationToken, DateTime startTime)
+        public static RecentMessagesData GetRecentMessages(string msgsHost, string threadId, string registrationToken, long startTime)
         {
             var headers = new Dictionary<string, string>() {
                 { "RegistrationToken", registrationToken },
@@ -102,7 +102,7 @@ namespace Skypeulica
             };
 
             var parameters = new Dictionary<string, string>() {
-                { "startTime", (startTime.Ticks / 1000).ToString() },
+                { "startTime", startTime.ToString() },
                 { "view", "supportsExtendedHistory|msnp24Equivalent|supportsMessageProperties" },
                 { "pageSize", "30" }
             };
@@ -111,6 +111,11 @@ namespace Skypeulica
             return JsonConvert.DeserializeObject<RecentMessagesData>(response);
         }
 
+        public static void GetEvents(string msgsHost, string chatId, string token) 
+        {
+            var response = RestUtils.PostDataResponse(msgsHost, $"/users/ME/endpoints/{chatId}/subscriptions/0/poll", null, new() { { "RegistrationToken", token } });
+            Console.WriteLine(response);
+        }
 
         //public static SkypeToken GetAllContacts(string myUserID, string token)
         //{

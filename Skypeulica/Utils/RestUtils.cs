@@ -55,13 +55,16 @@ namespace Skypeulica.Utils
             return DoRequestResponse(baseURL, endpoint, data, headers, method).Content;
         }
 
-        private static RestResponse DoRequestResponse(string baseURL, string endpoint, object data, Dictionary<string, string> headers = null, Method method = Method.Post)
+        private static RestResponse DoRequestResponse(string baseURL, string endpoint, object data = null, Dictionary<string, string> headers = null, Method method = Method.Post)
         {
             var client = new RestClient(baseURL);
             var request = new RestRequest(endpoint, method);
-            request.AddHeader("Accept", "application/json");
-            request.AddParameter("application/json", data, ParameterType.RequestBody);
-            if (headers != null)
+            if(data is not null) {
+                request.AddHeader("Accept", "application/json");
+                request.AddParameter("application/json", data, ParameterType.RequestBody);
+            }
+
+            if (headers is not null)
             {
                 foreach (var header in headers)
                 {

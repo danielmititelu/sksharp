@@ -2,7 +2,7 @@
 {
     public class Chat
     {
-        private DateTime _lastRoomMessageTreated;
+        private long _lastRoomMessageTreated;
         private string _location;
         private string _userName;
         private string _registrationToken;
@@ -17,7 +17,7 @@
             _registrationToken = registrationToken;
 
             var destinationTimezoneId = TimeZoneInfo.FindSystemTimeZoneById("GMT Standard Time");
-            _lastRoomMessageTreated = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, destinationTimezoneId);
+            _lastRoomMessageTreated = TimeUtils.GetUnixTimestamp(DateTime.UtcNow);
         }
 
         public void SendMessage(string content)
@@ -30,9 +30,16 @@
             var receivedMessages = SkypeApi.GetRecentMessages(_location, _conversation.id, _registrationToken, _lastRoomMessageTreated);
             if (receivedMessages.messages.Count > 0)
             {
-                _lastRoomMessageTreated = receivedMessages.messages.Max(elem => elem.composetime);
+                _lastRoomMessageTreated = TimeUtils.GetUnixTimestamp(DateTime.UtcNow);
+                // _lastRoomMessageTreated = receivedMessages.messages.Max(elem => elem.composetime);
             }
             return receivedMessages.messages;
         }
+
+        public void GetEvents()
+        {
+            SkypeApi.GetEvents(_location, _conversation.id, _registrationToken);
+        }
+        
     }
 }
