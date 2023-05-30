@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using Skypeulica.Utils.Models;
+using System;
 
 namespace Skypeulica
 {
@@ -6,8 +8,11 @@ namespace Skypeulica
     {
         static void Main(string[] args)
         {
+            var configContent = File.ReadAllText("config.json");
+            var config = JsonConvert.DeserializeObject<Config>(configContent);
+
             // login
-            var secToken = SkypeApi.GetSecToken("buildythebuilder@gmail.com", "BbBuilder22@.");
+            var secToken = SkypeApi.GetSecToken(config.User, config.Password);
             var token = SkypeApi.GetSkypeToken(secToken);
             var contacts = SkypeApi.GetAllContacts(token.skypeid, token.Token);
 
