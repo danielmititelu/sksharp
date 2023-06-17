@@ -3,6 +3,10 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/main/VisualStudio.gitignore
 
+credentials.txt
+.DS_Store
+tokenCacheFile.json
+Config.json
 
 Config
 .dat
