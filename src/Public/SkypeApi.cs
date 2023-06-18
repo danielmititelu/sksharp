@@ -35,7 +35,7 @@ public class SkypeApi
 
         var securityToken = await _skypeService.GetSecurityToken(_username, _password);
         var skypeToken = await _skypeService.GetSkypeToken(securityToken);
-        var (registrationToken, location) = await _skypeService.GetRegistrationToken(skypeToken.Skypetoken);
+        var (registrationToken, baseUrl) = await _skypeService.GetRegistrationToken(skypeToken.Skypetoken);
         var userId = await _skypeService.GetUsername(skypeToken.Skypetoken);
 
         var loginTokens = new LoginTokens
@@ -43,7 +43,7 @@ public class SkypeApi
             UserId = userId,
             SkypeToken = skypeToken.Skypetoken,
             RegistrationToken = registrationToken,
-            Location = location,
+            BaseUrl = baseUrl,
             TokenExpirationDate = DateTime.UtcNow.AddSeconds(skypeToken.ExpiresIn)
         };
 

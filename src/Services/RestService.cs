@@ -1,4 +1,5 @@
 using System.Net.Http.Json;
+using System.Text;
 using System.Web;
 
 internal class RestService
@@ -72,7 +73,7 @@ internal class RestService
         return content;
     }
 
-    internal async Task Post(string url, object data, Dictionary<string, string>? headers = null)
+    internal async Task PostJson(string url, object data, Dictionary<string, string>? headers = null)
     {
         var request = JsonContent.Create(data);
         if (headers != null)
@@ -86,7 +87,7 @@ internal class RestService
         await _httpClient.PostAsync(url, request);
     }
 
-    internal async Task<T> Post<T>(string url, object data, Dictionary<string, string>? headers = null)
+    internal async Task<T> PostJson<T>(string url, object data, Dictionary<string, string>? headers = null)
     {
         var request = JsonContent.Create(data);
         if (headers != null)
@@ -107,6 +108,32 @@ internal class RestService
         {
             throw new Exception($"Could not get response from {url}");
         }
+        return content;
+    }
+
+    internal async Task<string> PostXml(string url, string data, Dictionary<string, string>? headers = null)
+    {
+        var request = new StringContent(data, Encoding.UTF8, "text/xml");
+        if (headers != null)
+        {
+            foreach (var header in headers)
+            {
+                request.Headers.Add(header.Key, header.Value);
+            }
+        }
+
+        var response = await _httpClient.PostAsync(url, request);
+        if (response.StatusCode != System.Net.HttpStatusCode.OK)
+        {
+            throw new Exception($"Could not get response from {url}");
+        }
+
+        var content = await response.Content.ReadAsStringAsync();
+        if (content is null)
+        {
+            throw new Exception($"Could not get response content from {url}");
+        }
+
         return content;
     }
 }

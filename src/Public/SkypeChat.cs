@@ -18,7 +18,7 @@ public class SkypeChat
     {
         var tokens = await _skypeApi.GetTokens();
         await _skypeService.SendMessage(
-            tokens.Location,
+            tokens.BaseUrl,
             tokens.RegistrationToken,
             _chatId,
             message

@@ -11,10 +11,10 @@ public class LoggedInSkypeApi
         _skypeApi = skypeApi;
     }
 
-    public async Task<SkypeChat> GetRoomByName(string roomName)
+    public async Task<SkypeChat> GetChatRoomByName(string roomName)
     {
         var tokens = await _skypeApi.GetTokens();
-        var chats = await _skypeService.GetChats(tokens.RegistrationToken, tokens.Location);
+        var chats = await _skypeService.GetChats(tokens.RegistrationToken, tokens.BaseUrl);
         var chat = chats.Conversations.FirstOrDefault(r => r.ThreadProperties.Topic.Equals(roomName, StringComparison.InvariantCultureIgnoreCase));
         if (chat is null)
         {

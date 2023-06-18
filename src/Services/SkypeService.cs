@@ -1,5 +1,4 @@
 using System.Xml.Linq;
-using RestSharp;
 using System.Net;
 
 namespace SkSharp;
@@ -7,56 +6,45 @@ namespace SkSharp;
 internal class SkypeService
 {
     RestService _restService;
-    RestClient _restClient;
 
     public SkypeService()
     {
         _restService = new RestService();
-        _restClient = new RestClient();
     }
 
     internal async Task<string> GetSecurityToken(string username, string password)
     {
-
         var body = @$"<Envelope xmlns='http://schemas.xmlsoap.org/soap/envelope/'
-       xmlns:wsse='http://schemas.xmlsoap.org/ws/2003/06/secext'
-       xmlns:wsp='http://schemas.xmlsoap.org/ws/2002/12/policy'
-       xmlns:wsa='http://schemas.xmlsoap.org/ws/2004/03/addressing'
-       xmlns:wst='http://schemas.xmlsoap.org/ws/2004/04/trust'
-       xmlns:ps='http://schemas.microsoft.com/Passport/SoapServices/PPCRL'>
-       <Header>
-           <wsse:Security>
-               <wsse:UsernameToken Id='user'>
-                   <wsse:Username>{username}</wsse:Username>
-                   <wsse:Password>{password}</wsse:Password>
-               </wsse:UsernameToken>
-           </wsse:Security>
-       </Header>
-       <Body>
-           <ps:RequestMultipleSecurityTokens Id='RSTS'>
-               <wst:RequestSecurityToken Id='RST0'>
-                   <wst:RequestType>http://schemas.xmlsoap.org/ws/2004/04/security/trust/Issue</wst:RequestType>
-                   <wsp:AppliesTo>
-                       <wsa:EndpointReference>
-                           <wsa:Address>wl.skype.com</wsa:Address>
-                       </wsa:EndpointReference>
-                   </wsp:AppliesTo>
-                   <wsse:PolicyReference URI='MBI_SSL'></wsse:PolicyReference>
-               </wst:RequestSecurityToken>
-           </ps:RequestMultipleSecurityTokens>
-       </Body>
-    </Envelope>";
+            xmlns:wsse='http://schemas.xmlsoap.org/ws/2003/06/secext'
+            xmlns:wsp='http://schemas.xmlsoap.org/ws/2002/12/policy'
+            xmlns:wsa='http://schemas.xmlsoap.org/ws/2004/03/addressing'
+            xmlns:wst='http://schemas.xmlsoap.org/ws/2004/04/trust'
+            xmlns:ps='http://schemas.microsoft.com/Passport/SoapServices/PPCRL'>
+            <Header>
+                <wsse:Security>
+                    <wsse:UsernameToken Id='user'>
+                        <wsse:Username>{username}</wsse:Username>
+                        <wsse:Password>{password}</wsse:Password>
+                    </wsse:UsernameToken>
+                </wsse:Security>
+            </Header>
+            <Body>
+                <ps:RequestMultipleSecurityTokens Id='RSTS'>
+                    <wst:RequestSecurityToken Id='RST0'>
+                        <wst:RequestType>http://schemas.xmlsoap.org/ws/2004/04/security/trust/Issue</wst:RequestType>
+                        <wsp:AppliesTo>
+                            <wsa:EndpointReference>
+                                <wsa:Address>wl.skype.com</wsa:Address>
+                            </wsa:EndpointReference>
+                        </wsp:AppliesTo>
+                        <wsse:PolicyReference URI='MBI_SSL'></wsse:PolicyReference>
+                    </wst:RequestSecurityToken>
+                </ps:RequestMultipleSecurityTokens>
+            </Body>
+            </Envelope>";
 
-        var request = new RestRequest("https://login.live.com/RST.srf", Method.Post);
-        request.AddHeader("Accept", "application/json");
-        request.AddParameter("application/json", body, ParameterType.RequestBody);
-
-        var response = await _restClient.ExecuteAsync(request);
-        if (response.Content == null || response.StatusCode != System.Net.HttpStatusCode.OK)
-        {
-            throw new Exception("Could not get security token");
-        }
-        var xmlResponse = XElement.Parse(response.Content);
+        var responseContent = await _restService.PostXml("https://login.live.com/RST.srf", body);
+        var xmlResponse = XElement.Parse(responseContent);
         var securityToken = xmlResponse.Descendants().First(x => x.Name.LocalName == "BinarySecurityToken").Value;
         if (string.IsNullOrEmpty(securityToken))
         {
@@ -75,7 +63,7 @@ internal class SkypeService
             scopes = "client"
         };
 
-        return await _restService.Post<SkypeTokenResponse>("https://edge.skype.com/rps/v1/rps/skypetoken", body);
+        return await _restService.PostJson<SkypeTokenResponse>("https://edge.skype.com/rps/v1/rps/skypetoken", body);
     }
 
     internal async Task<(string registrationToken, string location)> GetRegistrationToken(string skypeToken)
@@ -144,6 +132,6 @@ internal class SkypeService
                 { "RegistrationToken", registrationToken },
                 { "ClientInfo", "os=Windows; osVer=10; proc=x86; lcid=en-US; deviceType=1; country=US; clientName=skype4life; clientVer=1418/9.99.0.999//skype4life" }
         };
-        await _restService.Post($"{baseUrl}/v1/users/ME/conversations/{chatId}/messages", body, headers);
+        await _restService.PostJson($"{baseUrl}/v1/users/ME/conversations/{chatId}/messages", body, headers);
     }
 }
