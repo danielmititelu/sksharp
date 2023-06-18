@@ -1,5 +1,4 @@
 using System.Xml.Linq;
-using System.Net.Http.Json;
 using RestSharp;
 using System.Net;
 
@@ -81,6 +80,7 @@ internal class SkypeService
 
     internal async Task<(string registrationToken, string location)> GetRegistrationToken(string skypeToken)
     {
+        var baseUrl = "https://client-s.gateway.messenger.live.com";
         var currentTicks = DateTime.Now.Ticks;
         var hash = Mac256Utils.GetMac256Hash(currentTicks.ToString());
         var headers = new Dictionary<string, string>{
@@ -89,16 +89,16 @@ internal class SkypeService
                 { "BehaviorOverride", "redirectAs404"}
         };
 
-        var response = await _restService.Get("https://client-s.gateway.messenger.live.com/v1/users/ME/endpoints", headers);
-        var location = response.Headers.FirstOrDefault(x => x.Key == "Location").Value?.ToString();
-        if (string.IsNullOrEmpty(location))
-        {
-            throw new Exception("Could not get registration token");
-        }
-
+        var response = await _restService.Get($"{baseUrl}/v1/users/ME/endpoints", headers);
         if (response.StatusCode == HttpStatusCode.NotFound)
         {
+            var location = response.Headers.FirstOrDefault(x => x.Key == "Location").Value?.ToString();
+            if (string.IsNullOrEmpty(location))
+            {
+                throw new Exception("Could not get registration token");
+            }
             response = await _restService.Get(location, headers);
+            baseUrl = new Uri(location).GetLeftPart(UriPartial.Authority);
         }
 
         var registrationToken = response.Headers.FirstOrDefault(x => x.Key == "Set-RegistrationToken").Value?.ToString();
@@ -106,7 +106,7 @@ internal class SkypeService
         {
             throw new Exception("Could not get registration token");
         }
-        return (registrationToken, location);
+        return (registrationToken, baseUrl);
     }
 
     internal async Task<string> GetUsername(string skypeToken)
@@ -116,5 +116,34 @@ internal class SkypeService
         };
         var userDetails = await _restService.Get<UserDetails>("https://api.skype.com/users/self/profile", headers);
         return userDetails.Username;
+    }
+
+    internal async Task<Chats> GetChats(string registrationToken, string baseUrl)
+    {
+        var queryParameters = new Dictionary<string, string>() {
+            { "startime", "0" },
+            { "view", "supportsExtendedHistory|msnp24Equivalent" },
+            { "targetType", "Passport|Skype|Lync|Thread|Agent|ShortCircuit|PSTN|Flxt|NotificationStream|ModernBots|secureThreads|InviteFree" }
+        };
+        var headers = new Dictionary<string, string>{
+                { "RegistrationToken", registrationToken }
+        };
+        
+        return await _restService.Get<Chats>($"{baseUrl}/v1/users/ME/conversations", headers, queryParameters);
+    }
+
+    internal async Task SendMessage(string baseUrl, string registrationToken, string chatId, string message)
+    {
+        var body = new {
+            Content = message,
+            Messagetype = "Text",
+            Contenttype = "text",
+        };
+
+        var headers = new Dictionary<string, string> {
+                { "RegistrationToken", registrationToken },
+                { "ClientInfo", "os=Windows; osVer=10; proc=x86; lcid=en-US; deviceType=1; country=US; clientName=skype4life; clientVer=1418/9.99.0.999//skype4life" }
+        };
+        await _restService.Post($"{baseUrl}/v1/users/ME/conversations/{chatId}/messages", body, headers);
     }
 }

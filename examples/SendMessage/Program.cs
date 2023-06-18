@@ -7,9 +7,5 @@ var groupName = credentials[2];
 
 var chat = new SkypeApi();
 var loggedInSkypeApi = await chat.Login(username, password, "tokenCacheFile.json");
-var user = loggedInSkypeApi.GetUserId();
-Console.WriteLine($"Logged in as {user}");
-// var room = await loggedInSkypeApi.GetRoomByName(groupName);
-
-
-
+var room = await loggedInSkypeApi.GetRoomByName(groupName);
+await room.SendMessage("Hello from SkSharp!");

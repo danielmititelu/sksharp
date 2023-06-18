@@ -41,3 +41,22 @@ Accept: application/json
     "access_token": "{{securityToken}}",
     "scopes": "client"
 }
+
+###
+
+GET https://azscus1-client-s.gateway.messenger.live.com/v1/users/ME/conversations
+?startime=0
+&view=supportsExtendedHistory|msnp24Equivalent&targetType=Passport|Skype|Lync|Thread|Agent|ShortCircuit|PSTN|Flxt|NotificationStream|ModernBots|secureThreads|InviteFree
+RegistrationToken: {{registrationToken}}
+
+###
+
+POST https://azscus1-client-s.gateway.messenger.live.com/v1/users/ME/conversations/{{chatId}}/messages
+RegistrationToken: {{registrationToken}}
+ClientInfo: os=Windows; osVer=10; proc=x86; lcid=en-US; deviceType=1; country=US; clientName=skype4life; clientVer=1418/9.99.0.999//skype4life
+
+{
+    "content": "Hello world!",
+    "contenttype": "text",
+    "messagetype": "Text",
+}

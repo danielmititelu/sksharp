@@ -1,5 +1,5 @@
-using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Web;
 
 internal class RestService
 {
@@ -34,13 +34,15 @@ internal class RestService
         };
     }
 
-    internal async Task<T> Get<T>(string url, Dictionary<string, string>? headers = null)
+    internal async Task<T> Get<T>(
+        string url,
+        Dictionary<string, string>? headers = null,
+        Dictionary<string, string>? queryParameters = null)
     {
-
         var request = new HttpRequestMessage
         {
             Method = HttpMethod.Get,
-            RequestUri = new Uri(url)
+            RequestUri = new Uri(url),
         };
 
         if (headers != null)
@@ -49,6 +51,16 @@ internal class RestService
             {
                 request.Headers.Add(header.Key, header.Value);
             }
+        }
+
+        if (queryParameters != null)
+        {
+            var query = HttpUtility.ParseQueryString(string.Empty);
+            foreach (var parameter in queryParameters)
+            {
+                query[parameter.Key] = parameter.Value;
+            }
+            request.RequestUri = new Uri($"{url}?{query}");
         }
 
         var response = await _httpClient.SendAsync(request);
@@ -60,19 +72,32 @@ internal class RestService
         return content;
     }
 
-    internal async Task<string> Post(string url, object data)
+    internal async Task Post(string url, object data, Dictionary<string, string>? headers = null)
     {
-        var response = await _httpClient.PostAsJsonAsync(url, data);
-        if (response.Content == null || response.StatusCode != System.Net.HttpStatusCode.OK)
+        var request = JsonContent.Create(data);
+        if (headers != null)
         {
-            throw new Exception($"Could not get response from {url}");
+            foreach (var header in headers)
+            {
+                request.Headers.Add(header.Key, header.Value);
+            }
         }
-        return await response.Content.ReadAsStringAsync();
+
+        await _httpClient.PostAsync(url, request);
     }
 
-    internal async Task<T> Post<T>(string url, object data)
+    internal async Task<T> Post<T>(string url, object data, Dictionary<string, string>? headers = null)
     {
-        var response = await _httpClient.PostAsJsonAsync(url, data);
+        var request = JsonContent.Create(data);
+        if (headers != null)
+        {
+            foreach (var header in headers)
+            {
+                request.Headers.Add(header.Key, header.Value);
+            }
+        }
+
+        var response = await _httpClient.PostAsync(url, request);
         if (response.Content == null || response.StatusCode != System.Net.HttpStatusCode.OK)
         {
             throw new Exception($"Could not get response from {url}");
