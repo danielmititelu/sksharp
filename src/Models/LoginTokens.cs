@@ -7,4 +7,5 @@ internal class LoginTokens
     public string UserId { get; set; } = string.Empty;
     public DateTime TokenExpirationDate { get; set; }
     public string BaseUrl { get; set; } = string.Empty;
+    public string EndpointId { get; set; } = string.Empty;
 }

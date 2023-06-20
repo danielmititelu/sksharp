@@ -80,4 +80,14 @@ RegistrationToken: {{registrationToken}}
 ###
 
 GET https://azscus1-client-s.gateway.messenger.live.com/v1/users/ME/presenceDocs/messagingService
+?view=expanded
 RegistrationToken: {{registrationToken}}
+
+###
+
+POST https://azscus1-client-s.gateway.messenger.live.com/v1/users/ME/endpoints
+LockAndKey: appId=msmsgs@msnmsgr.com; time=638228979747789720; lockAndKeyResponse=92b6030a1ddf0cf4858a7e496d29f938
+Authentication: skypetoken={{SkypeToken}}
+BehaviorOverride: redirectAs404
+
+{"endpointFeatures": "Agent"}

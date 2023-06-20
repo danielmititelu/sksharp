@@ -1,6 +1,8 @@
 ﻿using System.Security.Cryptography;
 using System.Text;
 
+namespace SkSharp.Utils;
+
 public static class Mac256Utils
 {
     public static string GetMac256Hash(string challenge, string appId = "msmsgs@msnmsgr.com", string key = "Q1P7W2E4J9R8U3S5")
@@ -14,8 +16,8 @@ public static class Mac256Utils
             StringBuilder hexString = new StringBuilder();
             for (int i = 0; i < 4; i++)
             {
-                hexString.Append(hexChars[(int)(n >> (i * 8 + 4)) & 15]);
-                hexString.Append(hexChars[(int)(n >> (i * 8)) & 15]);
+                hexString.Append(hexChars[(int)(n >> i * 8 + 4) & 15]);
+                hexString.Append(hexChars[(int)(n >> i * 8) & 15]);
             }
             return hexString.ToString();
         }
@@ -92,7 +94,7 @@ public static class Mac256Utils
             pClearText[i] = 0;
             for (int pos = 0; pos < 4; pos++)
             {
-                pClearText[i] += (int)clearText[4 * i + pos] * (int)Math.Pow(256, pos);
+                pClearText[i] += clearText[4 * i + pos] * (int)Math.Pow(256, pos);
             }
         }
 

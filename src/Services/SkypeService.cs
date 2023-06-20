@@ -1,11 +1,12 @@
 using System.Xml.Linq;
 using System.Net;
+using SkSharp.Utils;
 
 namespace SkSharp;
 
 internal class SkypeService
 {
-    RestService _restService;
+    readonly RestService _restService;
 
     public SkypeService()
     {
@@ -67,7 +68,7 @@ internal class SkypeService
         return (response.Skypetoken, response.ExpiresIn);
     }
 
-    internal async Task<(string registrationToken, string location)> GetRegistrationToken(string skypeToken)
+    internal async Task<(string registrationToken, string location, string endpointId)> GetRegistrationToken(string skypeToken)
     {
         var baseUrl = "https://client-s.gateway.messenger.live.com";
         var currentTicks = DateTime.Now.Ticks;
@@ -78,7 +79,12 @@ internal class SkypeService
                 { "BehaviorOverride", "redirectAs404"}
         };
 
-        var response = await _restService.Get($"{baseUrl}/v1/users/ME/endpoints", headers);
+        var body = new
+        {
+            endpointFeatures = "Agent"
+        };
+
+        var response = await _restService.PostJson($"{baseUrl}/v1/users/ME/endpoints", body, headers);
         if (response.StatusCode == HttpStatusCode.NotFound)
         {
             var location = response.Headers.FirstOrDefault(x => x.Key == "Location").Value?.ToString();
@@ -86,22 +92,22 @@ internal class SkypeService
             {
                 throw new Exception("Could not get registration token");
             }
-            response = await _restService.Get(location, headers);
+            response = await _restService.PostJson(location, body, headers);
             baseUrl = new Uri(location).GetLeftPart(UriPartial.Authority);
         }
 
         var registrationTokenHeader = response.Headers.FirstOrDefault(x => x.Key == "Set-RegistrationToken").Value?.ToString();
-            if (string.IsNullOrEmpty(registrationTokenHeader))
+        if (string.IsNullOrEmpty(registrationTokenHeader))
         {
             throw new Exception("Could not get registration token");
         }
-        var (registrationToken, expires) = TokenUtils.ParseRegistrationTokenHeader(registrationTokenHeader);
+        var (registrationToken, expires, endpointId) = TokenUtils.ParseRegistrationTokenHeader(registrationTokenHeader);
 
         if (string.IsNullOrEmpty(registrationTokenHeader))
         {
             throw new Exception("Could not get registration token");
         }
-        return (registrationToken, baseUrl);
+        return (registrationToken, baseUrl, endpointId);
     }
 
     internal async Task<string> GetUsername(string skypeToken)
@@ -123,13 +129,14 @@ internal class SkypeService
         var headers = new Dictionary<string, string>{
                 { "RegistrationToken", registrationToken }
         };
-        
+
         return await _restService.Get<Chats>($"{baseUrl}/v1/users/ME/conversations", headers, queryParameters);
     }
 
     internal async Task SendMessage(string baseUrl, string registrationToken, string chatId, string message)
     {
-        var body = new {
+        var body = new
+        {
             Content = message,
             Messagetype = "Text",
             Contenttype = "text",
@@ -142,31 +149,31 @@ internal class SkypeService
         await _restService.PostJson($"{baseUrl}/v1/users/ME/conversations/{chatId}/messages", body, headers);
     }
 
-    internal Task<IEnumerable<SkypeMessage>> GetMessageEvents(string baseUrl, string registrationToken, string chatId)
+    internal async Task<string> GetMessageEvents(string baseUrl, string registrationToken, string endpointId)
     {
-        var queryParameters = new Dictionary<string, string>() {
-            { "startTime", "0" },
-            { "pageSize", "100" },
-            { "view", "msnp24Equivalent" },
-            { "targetType", "Passport|Skype|Lync|Thread|Agent|ShortCircuit|PSTN|Flxt|NotificationStream|ModernBots|secureThreads|InviteFree" }
-        };
         var headers = new Dictionary<string, string>{
-                { "RegistrationToken", registrationToken }
+            { "RegistrationToken", registrationToken }
         };
-        return _restService.Get<IEnumerable<SkypeMessage>>($"{baseUrl}/v1/users/ME/conversations/{chatId}/messages", headers, queryParameters);
+        var response = await _restService.PostJson($"{baseUrl}//users/ME/endpoints/{endpointId}/subscriptions/0/poll", headers);
+        return response.Content;
     }
 
-    internal Task Subscribe(string baseUrl, string registrationToken, string chatId)
+    internal async Task Subscribe(string baseUrl, string registrationToken, string endpointId)
     {
-        var body = new {
-            interestedResources = new string[] { "messages", "properties", "contacts", "typing" },
-            template = "raw",
-            channelType = "httpLongPoll"
+        var body = new
+        {
+            interestedResources = new string[] { 
+                "/v1/users/ME/conversations/ALL/properties",
+                "/v1/users/ME/conversations/ALL/messages",
+                "/v1/threads/ALL" 
+            },
+            channelType = "httpLongPoll",
+            conversationType = 2047
         };
 
         var headers = new Dictionary<string, string>{
-                { "RegistrationToken", registrationToken }
+            { "RegistrationToken", registrationToken }
         };
-        return _restService.PostJson($"{baseUrl}/v1/users/ME/endpoints/SELF/subscriptions/{chatId}", body, headers);
+        await _restService.PostJson($"{baseUrl}/v1/users/ME/endpoints/{endpointId}/subscriptions", body, headers);
     }
 }

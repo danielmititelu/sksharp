@@ -35,7 +35,7 @@ public class SkypeApi
 
         var securityToken = await _skypeService.GetSecurityToken(_username, _password);
         var (skypeToken, expiresIn) = await _skypeService.GetSkypeToken(securityToken);
-        var (registrationToken, baseUrl) = await _skypeService.GetRegistrationToken(skypeToken);
+        var (registrationToken, baseUrl, endpointId) = await _skypeService.GetRegistrationToken(skypeToken);
         var userId = await _skypeService.GetUsername(skypeToken);
 
         var loginTokens = new LoginTokens
@@ -44,7 +44,8 @@ public class SkypeApi
             SkypeToken = skypeToken,
             RegistrationToken = registrationToken,
             BaseUrl = baseUrl,
-            TokenExpirationDate = DateTime.UtcNow.AddSeconds(expiresIn)
+            TokenExpirationDate = DateTime.UtcNow.AddSeconds(expiresIn),
+            EndpointId = endpointId
         };
 
         await _fileCacheService.WriteCacheFile(_cacheFilePath, loginTokens);

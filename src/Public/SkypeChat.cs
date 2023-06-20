@@ -2,10 +2,14 @@ namespace SkSharp;
 
 public class SkypeChat
 {
-    private SkypeService _skypeService;
-    private LoggedInSkypeApi _loggedInSkypeApi;
-    private string _chatId;
-    private SkypeApi _skypeApi;
+    private readonly SkypeService _skypeService;
+    private readonly LoggedInSkypeApi _loggedInSkypeApi;
+    private readonly string _chatId;
+    private readonly SkypeApi _skypeApi;
+
+    public delegate void MessageHandler(SkypeMessage message);
+    public event MessageHandler OnMessage;
+
     internal SkypeChat(string chatId, LoggedInSkypeApi loggedInSkypeApi, SkypeService skypeService)
     {
         _chatId = chatId;
@@ -25,20 +29,34 @@ public class SkypeChat
         );
     }
 
-    public delegate void MessageHandler(SkypeMessage message);
-    public event MessageHandler? OnMessage;
+    public void StartPolling()
+    {
+        Task.Run(async () =>
+        {
+            while (true)
+            {
+                await PollMessages();
+            }
+        });
+    }
 
-    internal async Task PollMessages()
+    private async Task PollMessages()
     {
         var tokens = await _skypeApi.GetTokens();
-        var messages = await _skypeService.GetMessageEvents(
+        await _skypeService.Subscribe(
             tokens.BaseUrl,
             tokens.RegistrationToken,
-            _chatId
+            tokens.EndpointId
         );
-        foreach (var message in messages)
+        var message = await _skypeService.GetMessageEvents(
+            tokens.BaseUrl,
+            tokens.RegistrationToken,
+            tokens.EndpointId
+        );
+        OnMessage?.Invoke(new SkypeMessage
         {
-            OnMessage?.Invoke(message);
-        }
+            Message = message,
+            Sender = "Gildrobica"
+        });
     }
 }

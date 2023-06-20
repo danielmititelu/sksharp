@@ -4,7 +4,7 @@ using System.Web;
 
 internal class RestService
 {
-    HttpClient _httpClient;
+    readonly HttpClient _httpClient;
     public RestService()
     {
         _httpClient = new HttpClient();
@@ -73,7 +73,7 @@ internal class RestService
         return content;
     }
 
-    internal async Task PostJson(string url, object data, Dictionary<string, string>? headers = null)
+    internal async Task<RestResponse> PostJson(string url, object data, Dictionary<string, string>? headers = null)
     {
         var request = JsonContent.Create(data);
         if (headers != null)
@@ -84,7 +84,14 @@ internal class RestService
             }
         }
 
-        await _httpClient.PostAsync(url, request);
+        var response = await _httpClient.PostAsync(url, request);
+
+        return new RestResponse
+        {
+            Content = await response.Content.ReadAsStringAsync(),
+            StatusCode = response.StatusCode,
+            Headers = response.Headers.ToDictionary(x => x.Key, x => x.Value.FirstOrDefault() ?? string.Empty)
+        };
     }
 
     internal async Task<T> PostJson<T>(string url, object data, Dictionary<string, string>? headers = null)

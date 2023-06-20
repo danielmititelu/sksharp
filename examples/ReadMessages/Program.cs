@@ -8,6 +8,10 @@ var groupName = credentials[2];
 var skypeApi = await new SkypeApi().Login(username, password, "tokenCacheFile.json");
 var chatRoom = await skypeApi.GetChatRoomByName(groupName);
 
-// chatRoom.onMessage += (message) => {
-//     Console.WriteLine($"[{message.Sender.DisplayName}] {message.Body}");
-// };
+chatRoom.OnMessage += (message) => {
+    Console.WriteLine($"[{message.Sender}] {message.Message}");
+};
+
+chatRoom.StartPolling();
+
+Console.ReadLine();
