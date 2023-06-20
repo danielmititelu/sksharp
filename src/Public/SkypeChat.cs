@@ -24,4 +24,21 @@ public class SkypeChat
             message
         );
     }
+
+    public delegate void MessageHandler(SkypeMessage message);
+    public event MessageHandler? OnMessage;
+
+    internal async Task PollMessages()
+    {
+        var tokens = await _skypeApi.GetTokens();
+        var messages = await _skypeService.GetMessageEvents(
+            tokens.BaseUrl,
+            tokens.RegistrationToken,
+            _chatId
+        );
+        foreach (var message in messages)
+        {
+            OnMessage?.Invoke(message);
+        }
+    }
 }

@@ -60,3 +60,24 @@ ClientInfo: os=Windows; osVer=10; proc=x86; lcid=en-US; deviceType=1; country=US
     "contenttype": "text",
     "messagetype": "Text",
 }
+
+###
+
+POST https://azscus1-client-s.gateway.messenger.live.com/v1/users/ME/endpoints/SELF/subscriptions
+RegistrationToken: {{registrationToken}}
+
+{
+    "channelType": "httpLongPoll",
+    "template": "raw",
+    "interestedResources": [
+        "/v1/users/ME/conversations/ALL/properties",
+        "/v1/users/ME/conversations/ALL/messages",
+        "/v1/users/ME/contacts/ALL",
+        "/v1/threads/ALL"
+    ]
+}
+
+###
+
+GET https://azscus1-client-s.gateway.messenger.live.com/v1/users/ME/presenceDocs/messagingService
+RegistrationToken: {{registrationToken}}
