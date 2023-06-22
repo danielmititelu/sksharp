@@ -6,6 +6,7 @@ public class SkypeChat
     private readonly LoggedInSkypeApi _loggedInSkypeApi;
     private readonly string _chatId;
     private readonly SkypeApi _skypeApi;
+    private bool _isSubscribed = false;
 
     public delegate void MessageHandler(SkypeMessage message);
     public event MessageHandler OnMessage;
@@ -43,19 +44,54 @@ public class SkypeChat
     private async Task PollMessages()
     {
         var tokens = await _skypeApi.GetTokens();
-        await _skypeService.Subscribe(
+        if (_isSubscribed == false)
+        {
+            var subscribeResponse = await  _skypeService.Subscribe(
+                tokens.BaseUrl,
+                tokens.RegistrationToken,
+                tokens.EndpointId
+            );
+            if(subscribeResponse.StatusCode != System.Net.HttpStatusCode.Created)
+            {
+                tokens = await _skypeApi.ReRegister();
+                subscribeResponse = await  _skypeService.Subscribe(
+                    tokens.BaseUrl,
+                    tokens.RegistrationToken,
+                    tokens.EndpointId
+                );
+
+                if(subscribeResponse.StatusCode != System.Net.HttpStatusCode.OK)
+                {
+                    throw new Exception("Failed to subscribe to chat");
+                }
+            }
+            _isSubscribed = true;
+        }
+
+        var messageResponse = await _skypeService.GetMessageEvents(
             tokens.BaseUrl,
             tokens.RegistrationToken,
             tokens.EndpointId
         );
-        var message = await _skypeService.GetMessageEvents(
-            tokens.BaseUrl,
-            tokens.RegistrationToken,
-            tokens.EndpointId
-        );
+
+        if(messageResponse.StatusCode != System.Net.HttpStatusCode.OK)
+        {
+            tokens = await _skypeApi.ReRegister();
+            messageResponse = await _skypeService.GetMessageEvents(
+                tokens.BaseUrl,
+                tokens.RegistrationToken,
+                tokens.EndpointId
+            );
+
+            if(messageResponse.StatusCode != System.Net.HttpStatusCode.OK)
+            {
+                throw new Exception("Failed to get message events");
+            }
+        }
+
         OnMessage?.Invoke(new SkypeMessage
         {
-            Message = message,
+            Message = messageResponse.Content,
             Sender = "Gildrobica"
         });
     }

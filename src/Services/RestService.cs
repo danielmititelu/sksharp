@@ -143,4 +143,30 @@ internal class RestService
 
         return content;
     }
+
+    internal async Task<RestResponse> Post(string url, Dictionary<string, string>? headers = null)
+    {
+        var request = new HttpRequestMessage
+        {
+            Method = HttpMethod.Post,
+            RequestUri = new Uri(url)
+        };
+
+        if (headers != null)
+        {
+            foreach (var header in headers)
+            {
+                request.Headers.Add(header.Key, header.Value);
+            }
+        }
+
+        var response = await _httpClient.SendAsync(request);
+
+        return new RestResponse
+        {
+            Content = await response.Content.ReadAsStringAsync(),
+            StatusCode = response.StatusCode,
+            Headers = response.Headers.ToDictionary(x => x.Key, x => x.Value.FirstOrDefault() ?? string.Empty)
+        };
+    }
 }

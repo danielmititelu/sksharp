@@ -149,16 +149,16 @@ internal class SkypeService
         await _restService.PostJson($"{baseUrl}/v1/users/ME/conversations/{chatId}/messages", body, headers);
     }
 
-    internal async Task<string> GetMessageEvents(string baseUrl, string registrationToken, string endpointId)
+    internal async Task<RestResponse> GetMessageEvents(string baseUrl, string registrationToken, string endpointId)
     {
         var headers = new Dictionary<string, string>{
             { "RegistrationToken", registrationToken }
         };
-        var response = await _restService.PostJson($"{baseUrl}//users/ME/endpoints/{endpointId}/subscriptions/0/poll", headers);
-        return response.Content;
+        var endpoint = WebUtility.UrlEncode(endpointId);
+        return await _restService.Post($"{baseUrl}/users/ME/endpoints/{endpoint}/subscriptions/0/poll", headers);
     }
 
-    internal async Task Subscribe(string baseUrl, string registrationToken, string endpointId)
+    internal async Task<RestResponse> Subscribe(string baseUrl, string registrationToken, string endpointId)
     {
         var body = new
         {
@@ -174,6 +174,6 @@ internal class SkypeService
         var headers = new Dictionary<string, string>{
             { "RegistrationToken", registrationToken }
         };
-        await _restService.PostJson($"{baseUrl}/v1/users/ME/endpoints/{endpointId}/subscriptions", body, headers);
+        return await _restService.PostJson($"{baseUrl}/v1/users/ME/endpoints/{endpointId}/subscriptions", body, headers);
     }
 }

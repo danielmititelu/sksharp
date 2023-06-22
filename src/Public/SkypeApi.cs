@@ -3,8 +3,8 @@
 public class SkypeApi
 {
     private LoginTokens _loginTokens;
-    private SkypeService _skypeService;
-    private FileCacheService _fileCacheService;
+    private readonly SkypeService _skypeService;
+    private readonly FileCacheService _fileCacheService;
     private string _username;
     private string _password;
     private string _cacheFilePath;
@@ -20,17 +20,17 @@ public class SkypeApi
         _username = string.Empty;
     }
 
-    internal async Task<LoginTokens> GetTokens()
+    internal async Task<LoginTokens> GetTokens(bool ignoreCache = false)
     {
-        if(_isCacheFileRead == false)
+        if (_isCacheFileRead == false && ignoreCache == false)
         {
             _loginTokens = await _fileCacheService.ReadCacheFile(_cacheFilePath) ?? new LoginTokens();
             _isCacheFileRead = true;
-        }
 
-        if (_loginTokens.TokenExpirationDate != default && _loginTokens.TokenExpirationDate > DateTime.UtcNow)
-        {
-            return _loginTokens;
+            if (_loginTokens.TokenExpirationDate != default && _loginTokens.TokenExpirationDate > DateTime.UtcNow)
+            {
+                return _loginTokens;
+            }
         }
 
         var securityToken = await _skypeService.GetSecurityToken(_username, _password);
@@ -50,6 +50,17 @@ public class SkypeApi
 
         await _fileCacheService.WriteCacheFile(_cacheFilePath, loginTokens);
         return loginTokens;
+    }
+
+    internal async Task<LoginTokens> ReRegister()
+    {
+        var tokens = await GetTokens();
+        var (registrationToken, baseUrl, endpointId) = await _skypeService.GetRegistrationToken(tokens.SkypeToken);
+        tokens.RegistrationToken = registrationToken;
+        tokens.BaseUrl = baseUrl;
+        tokens.EndpointId = endpointId;
+        await _fileCacheService.WriteCacheFile(_cacheFilePath, tokens);
+        return tokens;
     }
 
     public async Task<LoggedInSkypeApi> Login(string username, string password, string cacheFilePath)
