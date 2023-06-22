@@ -162,7 +162,6 @@ internal class RestService
         }
 
         var response = await _httpClient.SendAsync(request);
-        Console.WriteLine(response.StatusCode);
         var content = await response.Content.ReadFromJsonAsync<T>();
         if (content is null)
         {

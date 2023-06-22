@@ -68,7 +68,6 @@ public class SkypeChat
             _isSubscribed = true;
         }
 
-        Console.WriteLine("start pooling...");
         var messageResponse = await _skypeService.GetMessageEvents(
             tokens.BaseUrl,
             tokens.RegistrationToken,
@@ -82,7 +81,6 @@ public class SkypeChat
 
         foreach (var eventMessage in messageResponse.Content.EventMessages)
         {
-            Console.WriteLine("inside library"+eventMessage.Resource.Content);
             OnMessage?.Invoke(new SkypeMessage
             {
                 MessageType = eventMessage.Resource.Messagetype,
