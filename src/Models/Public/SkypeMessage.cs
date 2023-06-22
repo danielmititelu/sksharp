@@ -2,6 +2,7 @@ namespace SkSharp;
 
 public class SkypeMessage
 {
-    public string Message { get; set; } = string.Empty;
-    public string Sender { get; set; } = string.Empty;
+    public required string MessageType { get; set; }
+    public required string Message { get; set; }
+    public required string Sender { get; set; }
 }

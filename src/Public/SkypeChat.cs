@@ -46,21 +46,21 @@ public class SkypeChat
         var tokens = await _skypeApi.GetTokens();
         if (_isSubscribed == false)
         {
-            var subscribeResponse = await  _skypeService.Subscribe(
+            var subscribeResponse = await _skypeService.Subscribe(
                 tokens.BaseUrl,
                 tokens.RegistrationToken,
                 tokens.EndpointId
             );
-            if(subscribeResponse.StatusCode != System.Net.HttpStatusCode.Created)
+            if (subscribeResponse.StatusCode != System.Net.HttpStatusCode.Created)
             {
                 tokens = await _skypeApi.ReRegister();
-                subscribeResponse = await  _skypeService.Subscribe(
+                subscribeResponse = await _skypeService.Subscribe(
                     tokens.BaseUrl,
                     tokens.RegistrationToken,
                     tokens.EndpointId
                 );
 
-                if(subscribeResponse.StatusCode != System.Net.HttpStatusCode.OK)
+                if (subscribeResponse.StatusCode != System.Net.HttpStatusCode.OK)
                 {
                     throw new Exception("Failed to subscribe to chat");
                 }
@@ -68,31 +68,27 @@ public class SkypeChat
             _isSubscribed = true;
         }
 
+        Console.WriteLine("start pooling...");
         var messageResponse = await _skypeService.GetMessageEvents(
             tokens.BaseUrl,
             tokens.RegistrationToken,
             tokens.EndpointId
         );
 
-        if(messageResponse.StatusCode != System.Net.HttpStatusCode.OK)
+        if (messageResponse.StatusCode != System.Net.HttpStatusCode.OK)
         {
-            tokens = await _skypeApi.ReRegister();
-            messageResponse = await _skypeService.GetMessageEvents(
-                tokens.BaseUrl,
-                tokens.RegistrationToken,
-                tokens.EndpointId
-            );
-
-            if(messageResponse.StatusCode != System.Net.HttpStatusCode.OK)
-            {
-                throw new Exception("Failed to get message events");
-            }
+            throw new Exception("Failed to get messages");
         }
 
-        OnMessage?.Invoke(new SkypeMessage
+        foreach (var eventMessage in messageResponse.Content.EventMessages)
         {
-            Message = messageResponse.Content,
-            Sender = "Gildrobica"
-        });
+            Console.WriteLine("inside library"+eventMessage.Resource.Content);
+            OnMessage?.Invoke(new SkypeMessage
+            {
+                MessageType = eventMessage.Resource.Messagetype,
+                Message = eventMessage.Resource.Content,
+                Sender = eventMessage.Resource.Imdisplayname
+            });
+        }
     }
 }

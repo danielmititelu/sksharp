@@ -1,6 +1,7 @@
 using System.Xml.Linq;
 using System.Net;
 using SkSharp.Utils;
+using SkSharp.Models.SkypeApiModels;
 
 namespace SkSharp;
 
@@ -149,23 +150,12 @@ internal class SkypeService
         await _restService.PostJson($"{baseUrl}/v1/users/ME/conversations/{chatId}/messages", body, headers);
     }
 
-    internal async Task<RestResponse> GetMessageEvents(string baseUrl, string registrationToken, string endpointId)
-    {
-        var headers = new Dictionary<string, string>{
-            { "RegistrationToken", registrationToken }
-        };
-        var endpoint = WebUtility.UrlEncode(endpointId);
-        return await _restService.Post($"{baseUrl}/users/ME/endpoints/{endpoint}/subscriptions/0/poll", headers);
-    }
-
     internal async Task<RestResponse> Subscribe(string baseUrl, string registrationToken, string endpointId)
     {
         var body = new
         {
-            interestedResources = new string[] { 
-                "/v1/users/ME/conversations/ALL/properties",
+            interestedResources = new string[] {
                 "/v1/users/ME/conversations/ALL/messages",
-                "/v1/threads/ALL" 
             },
             channelType = "httpLongPoll",
             conversationType = 2047
@@ -175,5 +165,15 @@ internal class SkypeService
             { "RegistrationToken", registrationToken }
         };
         return await _restService.PostJson($"{baseUrl}/v1/users/ME/endpoints/{endpointId}/subscriptions", body, headers);
+    }
+
+    internal async Task<RestResponse<SkypeEvent>> GetMessageEvents(string baseUrl, string registrationToken, string endpointId)
+    {
+        var headers = new Dictionary<string, string>{
+            { "RegistrationToken", registrationToken }
+        };
+        var endpoint = WebUtility.UrlEncode(endpointId);
+
+        return await _restService.Post<SkypeEvent>($"{baseUrl}/v1/users/ME/endpoints/{endpoint}/subscriptions/0/poll", headers);
     }
 }

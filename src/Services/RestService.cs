@@ -1,6 +1,7 @@
 using System.Net.Http.Json;
 using System.Text;
 using System.Web;
+using SkSharp.Models.SkypeApiModels;
 
 internal class RestService
 {
@@ -144,7 +145,7 @@ internal class RestService
         return content;
     }
 
-    internal async Task<RestResponse> Post(string url, Dictionary<string, string>? headers = null)
+    internal async Task<RestResponse<T>> Post<T>(string url, Dictionary<string, string>? headers = null)
     {
         var request = new HttpRequestMessage
         {
@@ -161,10 +162,16 @@ internal class RestService
         }
 
         var response = await _httpClient.SendAsync(request);
-
-        return new RestResponse
+        Console.WriteLine(response.StatusCode);
+        var content = await response.Content.ReadFromJsonAsync<T>();
+        if (content is null)
         {
-            Content = await response.Content.ReadAsStringAsync(),
+            throw new Exception($"Could not get response content from {url}");
+        }
+
+        return new RestResponse<T>
+        {
+            Content = content,
             StatusCode = response.StatusCode,
             Headers = response.Headers.ToDictionary(x => x.Key, x => x.Value.FirstOrDefault() ?? string.Empty)
         };

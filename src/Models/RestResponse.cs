@@ -5,3 +5,10 @@ internal class RestResponse {
     public HttpStatusCode StatusCode { get; set; }
     public Dictionary<string, string> Headers { get; set; } = new Dictionary<string, string>();
 }
+
+internal class RestResponse<T> 
+{
+    public T Content { get; set; } 
+    public HttpStatusCode StatusCode { get; set; }
+    public Dictionary<string, string> Headers { get; set; } = new Dictionary<string, string>();
+}

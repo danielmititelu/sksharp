@@ -20,17 +20,17 @@ public class SkypeApi
         _username = string.Empty;
     }
 
-    internal async Task<LoginTokens> GetTokens(bool ignoreCache = false)
+    internal async Task<LoginTokens> GetTokens()
     {
-        if (_isCacheFileRead == false && ignoreCache == false)
+        if (_isCacheFileRead == false)
         {
             _loginTokens = await _fileCacheService.ReadCacheFile(_cacheFilePath) ?? new LoginTokens();
             _isCacheFileRead = true;
+        }
 
-            if (_loginTokens.TokenExpirationDate != default && _loginTokens.TokenExpirationDate > DateTime.UtcNow)
-            {
-                return _loginTokens;
-            }
+        if (_loginTokens.TokenExpirationDate != default && _loginTokens.TokenExpirationDate > DateTime.UtcNow)
+        {
+            return _loginTokens;
         }
 
         var securityToken = await _skypeService.GetSecurityToken(_username, _password);
