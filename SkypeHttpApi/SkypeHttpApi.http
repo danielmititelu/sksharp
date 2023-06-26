@@ -1,0 +1,93 @@
+
+POST https://login.live.com/RST.srf
+Accept: application/json
+
+<Envelope xmlns='http://schemas.xmlsoap.org/soap/envelope/'
+    xmlns:wsse='http://schemas.xmlsoap.org/ws/2003/06/secext'
+    xmlns:wsp='http://schemas.xmlsoap.org/ws/2002/12/policy'
+    xmlns:wsa='http://schemas.xmlsoap.org/ws/2004/03/addressing'
+    xmlns:wst='http://schemas.xmlsoap.org/ws/2004/04/trust'
+    xmlns:ps='http://schemas.microsoft.com/Passport/SoapServices/PPCRL'>
+    <Header>
+        <wsse:Security>
+            <wsse:UsernameToken Id='user'>
+                <wsse:Username>{{username}}</wsse:Username>
+                <wsse:Password>{{password}}</wsse:Password>
+            </wsse:UsernameToken>
+        </wsse:Security>
+    </Header>
+    <Body>
+        <ps:RequestMultipleSecurityTokens Id='RSTS'>
+            <wst:RequestSecurityToken Id='RST0'>
+                <wst:RequestType>http://schemas.xmlsoap.org/ws/2004/04/security/trust/Issue</wst:RequestType>
+                <wsp:AppliesTo>
+                    <wsa:EndpointReference>
+                        <wsa:Address>wl.skype.com</wsa:Address>
+                    </wsa:EndpointReference>
+                </wsp:AppliesTo>
+                <wsse:PolicyReference URI='MBI_SSL'></wsse:PolicyReference>
+            </wst:RequestSecurityToken>
+        </ps:RequestMultipleSecurityTokens>
+    </Body>
+</Envelope>
+
+###
+
+POST https://edge.skype.com/rps/v1/rps/skypetoken
+Accept: application/json
+
+{
+    "partner": "999",
+    "access_token": "{{securityToken}}",
+    "scopes": "client"
+}
+
+###
+
+GET https://azscus1-client-s.gateway.messenger.live.com/v1/users/ME/conversations
+?startime=0
+&view=supportsExtendedHistory|msnp24Equivalent&targetType=Passport|Skype|Lync|Thread|Agent|ShortCircuit|PSTN|Flxt|NotificationStream|ModernBots|secureThreads|InviteFree
+RegistrationToken: {{registrationToken}}
+
+###
+
+POST https://azscus1-client-s.gateway.messenger.live.com/v1/users/ME/conversations/{{chatId}}/messages
+RegistrationToken: {{registrationToken}}
+ClientInfo: os=Windows; osVer=10; proc=x86; lcid=en-US; deviceType=1; country=US; clientName=skype4life; clientVer=1418/9.99.0.999//skype4life
+
+{
+    "content": "Hello world!",
+    "contenttype": "text",
+    "messagetype": "Text",
+}
+
+###
+
+POST https://azscus1-client-s.gateway.messenger.live.com/v1/users/ME/endpoints/SELF/subscriptions
+RegistrationToken: {{registrationToken}}
+
+{
+    "channelType": "httpLongPoll",
+    "template": "raw",
+    "interestedResources": [
+        "/v1/users/ME/conversations/ALL/properties",
+        "/v1/users/ME/conversations/ALL/messages",
+        "/v1/users/ME/contacts/ALL",
+        "/v1/threads/ALL"
+    ]
+}
+
+###
+
+GET https://azscus1-client-s.gateway.messenger.live.com/v1/users/ME/presenceDocs/messagingService
+?view=expanded
+RegistrationToken: {{registrationToken}}
+
+###
+
+POST https://azscus1-client-s.gateway.messenger.live.com/v1/users/ME/endpoints
+LockAndKey: appId=msmsgs@msnmsgr.com; time=638228979747789720; lockAndKeyResponse=92b6030a1ddf0cf4858a7e496d29f938
+Authentication: skypetoken={{SkypeToken}}
+BehaviorOverride: redirectAs404
+
+{"endpointFeatures": "Agent"}

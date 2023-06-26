@@ -1,0 +1,39 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        
+        {
+            "name": "Lunch Skypeulica",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "buildSkypeulica",
+            "program": "${workspaceFolder}/Skypeulica/bin/Debug/net7.0/Skypeulica.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/Skypeulica",
+            "stopAtEntry": false,
+            "console": "internalConsole"
+        },
+        {
+            "name": "Lunch SendMessage Example",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "buildSendMessage",
+            "program": "${workspaceFolder}/examples/SendMessage/bin/Debug/net7.0/SendMessage.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/examples/SendMessage",
+            "console": "internalConsole",
+            "stopAtEntry": false
+        },
+        {
+            "name": "Lunch ReadMessages Example",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "buildReadMessages",
+            "program": "${workspaceFolder}/examples/ReadMessages/bin/Debug/net7.0/ReadMessages.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/examples/ReadMessages",
+            "console": "internalConsole",
+            "stopAtEntry": false
+        }
+    ]
+}
