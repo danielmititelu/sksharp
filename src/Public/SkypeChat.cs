@@ -1,3 +1,5 @@
+using System.Net;
+
 namespace SkSharp;
 
 public class SkypeChat
@@ -32,12 +34,15 @@ public class SkypeChat
 
     public void StartPolling()
     {
-        Task.Run(async () =>
+        _ = Task.Run(async () =>
         {
             while (true)
             {
                 await PollMessages();
             }
+        }).ContinueWith((t) =>
+        {
+            if (t.IsFaulted) throw t.Exception ?? new Exception("Failed to poll messages");
         });
     }
 
@@ -46,25 +51,7 @@ public class SkypeChat
         var tokens = await _skypeApi.GetTokens();
         if (_isSubscribed == false)
         {
-            var subscribeResponse = await _skypeService.Subscribe(
-                tokens.BaseUrl,
-                tokens.RegistrationToken,
-                tokens.EndpointId
-            );
-            if (subscribeResponse.StatusCode != System.Net.HttpStatusCode.Created)
-            {
-                tokens = await _skypeApi.ReRegister();
-                subscribeResponse = await _skypeService.Subscribe(
-                    tokens.BaseUrl,
-                    tokens.RegistrationToken,
-                    tokens.EndpointId
-                );
-
-                if (subscribeResponse.StatusCode != System.Net.HttpStatusCode.OK)
-                {
-                    throw new Exception("Failed to subscribe to chat");
-                }
-            }
+            await SubscribeToChat(tokens);
             _isSubscribed = true;
         }
 
@@ -74,19 +61,61 @@ public class SkypeChat
             tokens.EndpointId
         );
 
-        if (messageResponse.StatusCode != System.Net.HttpStatusCode.OK)
+        if (messageResponse.StatusCode == HttpStatusCode.NotFound)
+        {
+            await SubscribeToChat(tokens, true);
+            messageResponse = await _skypeService.GetMessageEvents(
+                tokens.BaseUrl,
+                tokens.RegistrationToken,
+                tokens.EndpointId
+            );
+        }
+
+        if (messageResponse.StatusCode != HttpStatusCode.RequestTimeout && messageResponse.StatusCode != HttpStatusCode.OK)
         {
             throw new Exception("Failed to get messages");
         }
 
-        foreach (var eventMessage in messageResponse.Content.EventMessages)
+        if (messageResponse.StatusCode != HttpStatusCode.RequestTimeout)
         {
-            OnMessage?.Invoke(new SkypeMessage
+            foreach (var eventMessage in messageResponse.Content.EventMessages)
             {
-                MessageType = eventMessage.Resource.Messagetype,
-                Message = eventMessage.Resource.Content,
-                Sender = eventMessage.Resource.Imdisplayname
-            });
+                OnMessage?.Invoke(new SkypeMessage
+                {
+                    MessageType = eventMessage.Resource.Messagetype,
+                    Message = eventMessage.Resource.Content,
+                    Sender = eventMessage.Resource.Imdisplayname
+                });
+            }
+        }
+    }
+
+    private async Task SubscribeToChat(LoginTokens tokens, bool regenerateRegistrationToken = false)
+    {
+        if (regenerateRegistrationToken)
+        {
+            tokens = await _skypeApi.RegenerateRegistrationToken();
+        }
+
+        var subscribeResponse = await _skypeService.Subscribe(
+            tokens.BaseUrl,
+            tokens.RegistrationToken,
+            tokens.EndpointId
+        );
+
+        if (subscribeResponse.StatusCode == HttpStatusCode.NotFound)
+        {
+            await _skypeApi.RegenerateRegistrationToken();
+            subscribeResponse = await _skypeService.Subscribe(
+                tokens.BaseUrl,
+                tokens.RegistrationToken,
+                tokens.EndpointId
+            );
+        }
+
+        if (subscribeResponse.StatusCode != HttpStatusCode.Created)
+        {
+            throw new Exception("Failed to subscribe to chat");
         }
     }
 }

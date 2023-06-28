@@ -52,7 +52,7 @@ public class SkypeApi
         return loginTokens;
     }
 
-    internal async Task<LoginTokens> ReRegister()
+    internal async Task<LoginTokens> RegenerateRegistrationToken()
     {
         var tokens = await GetTokens();
         var (registrationToken, baseUrl, endpointId) = await _skypeService.GetRegistrationToken(tokens.SkypeToken);

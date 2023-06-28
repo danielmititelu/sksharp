@@ -1,14 +1,16 @@
 using System.Net.Http.Json;
 using System.Text;
 using System.Web;
-using SkSharp.Models.SkypeApiModels;
 
 internal class RestService
 {
     readonly HttpClient _httpClient;
     public RestService()
     {
-        _httpClient = new HttpClient();
+        _httpClient = new HttpClient
+        {
+            Timeout = TimeSpan.FromSeconds(30)
+        };
     }
 
     internal async Task<RestResponse> Get(string url, Dictionary<string, string>? headers = null)

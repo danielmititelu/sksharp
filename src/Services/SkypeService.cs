@@ -173,7 +173,17 @@ internal class SkypeService
             { "RegistrationToken", registrationToken }
         };
         var endpoint = WebUtility.UrlEncode(endpointId);
-
-        return await _restService.Post<SkypeEvent>($"{baseUrl}/v1/users/ME/endpoints/{endpoint}/subscriptions/0/poll", headers);
+        
+        try
+        {
+            return await _restService.Post<SkypeEvent>($"{baseUrl}/v1/users/ME/endpoints/{endpoint}/subscriptions/0/poll", headers);
+        }
+        catch (TaskCanceledException)
+        {
+            return new RestResponse<SkypeEvent>
+            {
+                StatusCode = HttpStatusCode.RequestTimeout
+            };
+        }
     }
 }
