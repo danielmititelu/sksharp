@@ -8,8 +8,10 @@ var groupName = credentials[2];
 Console.WriteLine($"Starting program");
 
 var skypeApi = await new SkypeApi().Login(username, password, "tokenCacheFile.json");
+var myUserId = await skypeApi.GetUserId();
 var chatRoom = await skypeApi.GetChatRoomByName(groupName);
-chatRoom.OnMessage += (message) =>
+await chatRoom.SendMessage("Hello from SkSharp!");
+chatRoom.OnMessage += async (message) =>
 {
     if (message.MessageType.Contains("Typing"))
     {
@@ -17,8 +19,10 @@ chatRoom.OnMessage += (message) =>
     }
     else
     {
-
-        Console.WriteLine($"[{message.Sender}] {message.Message}");
+        if(message.Sender != myUserId){
+            await chatRoom.SendMessage($"You said: {message.Message}");
+            Console.WriteLine($"[{message.Sender}] {message.Message}");
+        }
     }
 };
 

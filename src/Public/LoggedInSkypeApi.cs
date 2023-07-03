@@ -23,4 +23,10 @@ public class LoggedInSkypeApi
 
         return new SkypeChat(chat.Id, this, _skypeService);
     }
+
+    public async Task<string> GetUserId()
+    {
+        var tokens = await _skypeApi.GetTokens();
+        return tokens.UserId;
+    }
 }
