@@ -34,15 +34,31 @@ public class SkypeChat
 
     public void StartPolling()
     {
+        var watch = new System.Diagnostics.Stopwatch();
         _ = Task.Run(async () =>
         {
             while (true)
             {
+                watch.Restart();
+                Console.WriteLine("Polling messages");
                 await PollMessages();
+                watch.Stop();
+                Console.WriteLine($"Polling messages done, took {watch.ElapsedMilliseconds}ms");
             }
         }).ContinueWith((t) =>
         {
-            if (t.IsFaulted) throw t.Exception ?? new Exception("Failed to poll messages");
+            if (t.IsFaulted)
+            {
+                if (t.Exception != null)
+                {
+                    Console.WriteLine("Polling stopped with error: {0}", t.Exception);
+                }
+                else
+                {
+                    Console.WriteLine("Polling stopped with error");
+                }
+            }
+            Console.WriteLine("Polling stopped");
         });
     }
 
@@ -73,6 +89,7 @@ public class SkypeChat
 
         if (messageResponse.StatusCode != HttpStatusCode.RequestTimeout && messageResponse.StatusCode != HttpStatusCode.OK)
         {
+            Console.WriteLine("Failed to get messages");
             throw new Exception("Failed to get messages");
         }
 

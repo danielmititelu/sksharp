@@ -30,6 +30,7 @@ public class SkypeApi
 
         if (_loginTokens.TokenExpirationDate != default && _loginTokens.TokenExpirationDate > DateTime.UtcNow)
         {
+            Console.WriteLine("Using cached tokens");
             return _loginTokens;
         }
 
@@ -49,6 +50,7 @@ public class SkypeApi
         };
 
         await _fileCacheService.WriteCacheFile(_cacheFilePath, loginTokens);
+        Console.WriteLine("Using new tokens");
         return loginTokens;
     }
 
