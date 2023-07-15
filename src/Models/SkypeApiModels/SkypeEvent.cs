@@ -3,7 +3,7 @@ namespace SkSharp.Models.SkypeApiModels;
 
 public class SkypeEvent
 {
-    public required List<EventMessage> EventMessages { get; set; }
+    public List<EventMessage> EventMessages { get; set; }
 }
 
 public class EventMessage

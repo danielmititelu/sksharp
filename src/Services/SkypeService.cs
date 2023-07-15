@@ -5,7 +5,7 @@ using SkSharp.Models.SkypeApiModels;
 
 namespace SkSharp;
 
-internal class SkypeService
+public class SkypeService
 {
     readonly RestService _restService;
 
@@ -134,7 +134,7 @@ internal class SkypeService
         return await _restService.Get<Chats>($"{baseUrl}/v1/users/ME/conversations", headers, queryParameters);
     }
 
-    internal async Task SendMessage(string baseUrl, string registrationToken, string chatId, string message)
+    internal async Task SendMessageAsync(string baseUrl, string registrationToken, string chatId, string message)
     {
         var body = new
         {
@@ -147,7 +147,11 @@ internal class SkypeService
                 { "RegistrationToken", registrationToken },
                 { "ClientInfo", "os=Windows; osVer=10; proc=x86; lcid=en-US; deviceType=1; country=US; clientName=skype4life; clientVer=1418/9.99.0.999//skype4life" }
         };
-        await _restService.PostJson($"{baseUrl}/v1/users/ME/conversations/{chatId}/messages", body, headers);
+        var response = await _restService.PostJson($"{baseUrl}/v1/users/ME/conversations/{chatId}/messages", body, headers);
+        if (response.StatusCode != HttpStatusCode.Created)
+        {
+            throw new Exception($"Could not send message, got {response.StatusCode}");
+        }
     }
 
     internal async Task<RestResponse> Subscribe(string baseUrl, string registrationToken, string endpointId)
