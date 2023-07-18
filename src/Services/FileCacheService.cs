@@ -4,13 +4,17 @@ namespace SkSharp;
 
 public class FileCacheService
 {
-    internal async Task<LoginTokens?> ReadCacheFile(string cacheFilePath) {
+    internal async Task<LoginTokens> ReadCacheFile(string cacheFilePath) {
         if (!File.Exists(cacheFilePath)) {
-            return null;
+            return new LoginTokens();
         }
 
         var fileContent = await File.ReadAllTextAsync(cacheFilePath);
         var cacheFile = JsonSerializer.Deserialize<LoginTokens>(fileContent);
+        if (cacheFile == null)
+        {
+            throw new Exception("Could not read cache File");
+        }
         return cacheFile;
     }
 

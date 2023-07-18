@@ -29,7 +29,7 @@ namespace SkSharp.Services
         {
             if (_isCacheFileRead == false)
             {
-                _loginTokens = await _fileCacheService.ReadCacheFile(_options.CacheFilePath) ?? new LoginTokens();
+                _loginTokens = await _fileCacheService.ReadCacheFile(_options.CacheFilePath);
                 _isCacheFileRead = true;
             }
 
@@ -44,7 +44,7 @@ namespace SkSharp.Services
             var (registrationToken, baseUrl, endpointId) = await _skypeService.GetRegistrationToken(skypeToken);
             var userId = await _skypeService.GetUsername(skypeToken);
 
-            var loginTokens = new LoginTokens
+            _loginTokens = new LoginTokens
             {
                 UserId = userId,
                 SkypeToken = skypeToken,
@@ -54,14 +54,13 @@ namespace SkSharp.Services
                 EndpointId = endpointId
             };
 
-            await _fileCacheService.WriteCacheFile(_options.CacheFilePath, loginTokens);
+            await _fileCacheService.WriteCacheFile(_options.CacheFilePath, _loginTokens);
             _logger.LogInformation("Using new tokens");
-            return loginTokens;
+            return _loginTokens;
         }
 
         internal async Task<LoginTokens> RegenerateRegistrationToken()
         {
-            string _cacheFilePath = _options.CacheFilePath;
             var tokens = await GetTokensAsync();
             var (registrationToken, baseUrl, endpointId) = await _skypeService.GetRegistrationToken(tokens.SkypeToken);
             tokens.RegistrationToken = registrationToken;
