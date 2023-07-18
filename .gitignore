@@ -7,6 +7,8 @@ credentials.txt
 .DS_Store
 tokenCacheFile.json
 Config.json
+appsettings.Secret.json
+cache.json
 
 Config
 .dat

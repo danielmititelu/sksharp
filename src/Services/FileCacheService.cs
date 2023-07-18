@@ -2,7 +2,7 @@ using System.Text.Json;
 
 namespace SkSharp;
 
-internal class FileCacheService
+public class FileCacheService
 {
     internal async Task<LoginTokens?> ReadCacheFile(string cacheFilePath) {
         if (!File.Exists(cacheFilePath)) {

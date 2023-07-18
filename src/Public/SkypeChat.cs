@@ -24,7 +24,7 @@ public class SkypeChat
     public async Task SendMessage(string message)
     {
         var tokens = await _skypeApi.GetTokens();
-        await _skypeService.SendMessage(
+        await _skypeService.SendMessageAsync(
             tokens.BaseUrl,
             tokens.RegistrationToken,
             _chatId,
