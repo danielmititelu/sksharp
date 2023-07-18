@@ -67,15 +67,15 @@ namespace SkSharp.PublicHosted
                 );
             }
 
+            if (messageResponse.StatusCode == HttpStatusCode.RequestTimeout)
+            {
+                return new List<SkypeMessage>();
+            }
+
             if (messageResponse.StatusCode != HttpStatusCode.RequestTimeout && messageResponse.StatusCode != HttpStatusCode.OK)
             {
                 _logger.LogError("Failed to get messages");
                 throw new Exception("Failed to get messages");
-            }
-
-            if (messageResponse.StatusCode == HttpStatusCode.RequestTimeout)
-            {
-                throw new Exception("Could not get messages, request timeout");
             }
 
             var skypeMessages = messageResponse.Content.EventMessages.Select(eventMessage => new SkypeMessage
