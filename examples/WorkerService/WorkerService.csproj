@@ -12,6 +12,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\src\SkSharp.csproj" />
+    <ProjectReference Include="..\..\src\SkSharp.csproj" />
   </ItemGroup>
 </Project>

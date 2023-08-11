@@ -8,7 +8,7 @@ internal class RestResponse {
 
 internal class RestResponse<T> 
 {
-    public T Content { get; set; } 
+    public T Content { get; set; }
     public HttpStatusCode StatusCode { get; set; }
     public Dictionary<string, string> Headers { get; set; } = new Dictionary<string, string>();
 }
