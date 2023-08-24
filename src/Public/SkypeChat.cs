@@ -101,7 +101,8 @@ public class SkypeChat
                 {
                     MessageType = eventMessage.Resource.Messagetype,
                     Message = eventMessage.Resource.Content,
-                    Sender = eventMessage.Resource.Imdisplayname
+                    Sender = eventMessage.Resource.Imdisplayname,
+                    ThreadTopic = eventMessage.Resource.Threadtopic.StartsWith("live:") ? string.Empty : eventMessage.Resource.Threadtopic
                 });
             }
         }
