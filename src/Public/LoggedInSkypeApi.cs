@@ -21,7 +21,7 @@ public class LoggedInSkypeApi
             throw new Exception("Room not found");
         }
 
-        return new SkypeChat(chat.Id, this, _skypeService);
+        return new SkypeChat(chat.Id, this, _skypeService, null);
     }
 
     public async Task<string> GetUserId()

@@ -78,7 +78,7 @@ namespace SkSharp.PublicHosted
                 throw new Exception("Failed to get messages");
             }
 
-            var skypeMessages = messageResponse.Content.EventMessages.Select(eventMessage => new SkypeMessage
+            var skypeMessages = messageResponse.Content.EventMessages.Select(eventMessage => new SkypeMessage(_skype, _skypeService)
             {
                 MessageType = eventMessage.Resource.Messagetype,
                 Message = eventMessage.Resource.Content,

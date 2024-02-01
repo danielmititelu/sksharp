@@ -1,9 +1,11 @@
+using SkSharp.Services;
 using System.Net;
 
 namespace SkSharp;
 
 public class SkypeChat
 {
+    private readonly SkypePipe _skypePipe;
     private readonly SkypeService _skypeService;
     private readonly LoggedInSkypeApi _loggedInSkypeApi;
     private readonly string _chatId;
@@ -13,10 +15,11 @@ public class SkypeChat
     public delegate void MessageHandler(SkypeMessage message);
     public event MessageHandler OnMessage;
 
-    internal SkypeChat(string chatId, LoggedInSkypeApi loggedInSkypeApi, SkypeService skypeService)
+    internal SkypeChat(string chatId, LoggedInSkypeApi loggedInSkypeApi, SkypeService skypeService, SkypePipe skypePipe)
     {
         _chatId = chatId;
         _loggedInSkypeApi = loggedInSkypeApi;
+        _skypePipe = skypePipe;
         _skypeService = skypeService;
         _skypeApi = _loggedInSkypeApi._skypeApi;
     }
@@ -97,7 +100,7 @@ public class SkypeChat
         {
             foreach (var eventMessage in messageResponse.Content.EventMessages)
             {
-                OnMessage?.Invoke(new SkypeMessage
+                OnMessage?.Invoke(new SkypeMessage(_skypePipe, _skypeService)
                 {
                     MessageType = eventMessage.Resource.Messagetype,
                     Message = eventMessage.Resource.Content,

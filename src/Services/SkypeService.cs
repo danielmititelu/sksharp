@@ -2,6 +2,9 @@ using System.Xml.Linq;
 using System.Net;
 using SkSharp.Utils;
 using SkSharp.Models.SkypeApiModels;
+using System.Text.RegularExpressions;
+using System.Xml.Serialization;
+using SkSharp.Models.Public;
 
 namespace SkSharp;
 
@@ -118,6 +121,30 @@ public class SkypeService
         };
         var userDetails = await _restService.Get<UserDetails>("https://api.skype.com/users/self/profile", headers);
         return userDetails.Username;
+    }
+
+    internal async Task<FileDetails> DownloadMessageAttachement(string skypeToken, SkypeMessage message, string savePath, IProgress<float> progress = null)
+    {
+        var headers = new Dictionary<string, string>{
+            { "Authorization", $"skype_token {skypeToken}" },
+            { "Accept-Encoding", "gzip, deflate, br" }
+        };
+
+        var uriFile = message.ToURIFile(URIObjectUtils.ContentType.File);
+
+        var localPath = Path.Combine(savePath, uriFile.OriginalName);
+
+        using (var file = new FileStream(localPath, FileMode.Create, FileAccess.Write, FileShare.None))
+        {
+            await _restService.DownloadAsync(uriFile.DownloadLink, headers, file, progress);
+        }
+
+        return new FileDetails
+        {
+            Name = uriFile.OriginalName,
+            LocalPath = localPath,
+            Size = uriFile.Size
+        };
     }
 
     internal async Task<Chats> GetChats(string registrationToken, string baseUrl)

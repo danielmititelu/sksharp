@@ -17,14 +17,29 @@ namespace WorkerService
         {
             var myUserId = await _skSharpChat.GetUserIdAsync();
             var chatName = "Builds";
+
             await _skSharpChat.SendMessageAsync(chatName, "Reporting for duty!");
+
+            var progressReporter = new ProgressReporter(chatName, _skSharpChat);
 
             while (!stoppingToken.IsCancellationRequested)
             {
                 var messages = await _skSharpChat.PoolMessagesAsync();
                 foreach (var message in messages)
                 {
-                    if (message.Sender != myUserId && !message.MessageType.Contains("Typing"))
+                    if (message.MessageType.Contains("Media_GenericFile"))
+                    {
+                        var localFileDetails = await message.DownloadAttachementAsync(@"Downloads\", progressReporter);
+                        if (!localFileDetails.HasError)
+                        {
+                            await _skSharpChat.SendMessageAsync(chatName, $"Successfully downloaded file {localFileDetails.Name}, size {localFileDetails.Size}, location {localFileDetails.LocalPath}");
+                        }
+                        else
+                        {
+                            await _skSharpChat.SendMessageAsync(chatName, $"Failed to downloaded file {localFileDetails.Name}, size {localFileDetails.Size}");
+                        }
+                    }
+                    else if (message.Sender != myUserId && !message.MessageType.Contains("Typing"))
                     {
                         var messageToSend = $"You said {message.Message}";
                         await _skSharpChat.SendMessageAsync(chatName, messageToSend);
