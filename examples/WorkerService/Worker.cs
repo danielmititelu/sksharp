@@ -32,11 +32,11 @@ namespace WorkerService
                         var localFileDetails = await message.DownloadAttachementAsync(@"Downloads\", progressReporter);
                         if (!localFileDetails.HasError)
                         {
-                            await _skSharpChat.SendMessageAsync(chatName, $"Successfully downloaded file {localFileDetails.Name}, size {localFileDetails.Size}, location {localFileDetails.LocalPath}");
+                            await _skSharpChat.SendMessageAsync(chatName, $"Successfully downloaded file {localFileDetails.Name}, size {localFileDetails.Size / 1024/1024} MB, location {localFileDetails.LocalPath}");
                         }
                         else
                         {
-                            await _skSharpChat.SendMessageAsync(chatName, $"Failed to downloaded file {localFileDetails.Name}, size {localFileDetails.Size}");
+                            await _skSharpChat.SendMessageAsync(chatName, $"Failed to downloaded file {localFileDetails.Name}, size {localFileDetails.Size / 1024/1024} MB");
                         }
                     }
                     else if (message.Sender != myUserId && !message.MessageType.Contains("Typing"))

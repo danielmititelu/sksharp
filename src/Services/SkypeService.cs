@@ -134,6 +134,8 @@ public class SkypeService
 
         var localPath = Path.Combine(savePath, uriFile.OriginalName);
 
+        if (!Directory.Exists(savePath)) Directory.CreateDirectory(savePath);
+
         using (var file = new FileStream(localPath, FileMode.Create, FileAccess.Write, FileShare.None))
         {
             await _restService.DownloadAsync(uriFile.DownloadLink, headers, file, progress);
