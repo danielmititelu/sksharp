@@ -1,11 +1,12 @@
 ﻿using SkSharp.Models.Internal;
+using SkSharp.Models.Public;
 using SkSharp.Models.SkypeApiModels;
 using System.Text.RegularExpressions;
 using System.Xml.Serialization;
 
 namespace SkSharp.Utils
 {
-    internal static class URIObjectUtils
+    public static class URIObjectUtils
     {
         private const string API_ASM = "https://api.asm.skype.com/v1/objects";
         private const string API_ASM_LOCAL = "https://{0}1-api.asm.skype.com/v1/objects";
@@ -17,6 +18,19 @@ namespace SkSharp.Utils
             Image,
             Audio,
             Video,
+        }
+
+        public static string GetAttachedFileName(this SkypeMessage message)
+        {
+            if (message.MessageType.Equals("RichText/Media_GenericFile"))
+            {
+                var fileDetails = ToURIFile(message, ContentType.File);
+                return fileDetails.OriginalName;
+            }
+            else
+            {
+                return "-unknown-";
+            }
         }
 
         internal static URIFileDetails ToURIFile(this SkypeMessage message, ContentType type)

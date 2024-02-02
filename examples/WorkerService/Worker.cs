@@ -1,4 +1,5 @@
 using SkSharp.PublicHosted;
+using SkSharp.Utils;
 
 namespace WorkerService
 {
@@ -16,30 +17,30 @@ namespace WorkerService
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             var myUserId = await _skSharpChat.GetUserIdAsync();
+            var displayName = await _skSharpChat.GetDisplayName();
             var chatName = "Builds";
 
             await _skSharpChat.SendMessageAsync(chatName, "Reporting for duty!");
-
-            var progressReporter = new ProgressReporter(chatName, _skSharpChat);
 
             while (!stoppingToken.IsCancellationRequested)
             {
                 var messages = await _skSharpChat.PoolMessagesAsync();
                 foreach (var message in messages)
                 {
-                    if (message.MessageType.Contains("Media_GenericFile"))
+                    if (message.MessageType.Equals("RichText/Media_GenericFile"))
                     {
-                        var localFileDetails = await message.DownloadAttachementAsync(@"Downloads\", progressReporter);
+                        var localFileDetails = await message.DownloadAttachementAsync(@"Downloads\", new ProgressReporter(chatName, message.GetAttachedFileName(), _skSharpChat));
                         if (!localFileDetails.HasError)
                         {
-                            await _skSharpChat.SendMessageAsync(chatName, $"Successfully downloaded file {localFileDetails.Name}, size {localFileDetails.Size / 1024/1024} MB, location {localFileDetails.LocalPath}");
+                            await _skSharpChat.SendMessageAsync(chatName, $"Successfully downloaded file {localFileDetails.Name}, size {localFileDetails.Size / 1024 / 1024} MB, location {localFileDetails.LocalPath}");
                         }
                         else
                         {
-                            await _skSharpChat.SendMessageAsync(chatName, $"Failed to downloaded file {localFileDetails.Name}, size {localFileDetails.Size / 1024/1024} MB");
+                            await _skSharpChat.SendMessageAsync(chatName, $"Failed to downloaded file {localFileDetails.Name}, size {localFileDetails.Size / 1024 / 1024} MB");
                         }
                     }
-                    else if (message.Sender != myUserId && !message.MessageType.Contains("Typing"))
+                    else if ((message.Sender != myUserId && message.Sender != displayName)
+                             && !message.MessageType.Contains("Typing"))
                     {
                         var messageToSend = $"You said {message.Message}";
                         await _skSharpChat.SendMessageAsync(chatName, messageToSend);

@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using SkSharp.Models.Public;
 using SkSharp.Services;
 using System.Net;
 
@@ -29,17 +30,33 @@ namespace SkSharp.PublicHosted
             return tokens.UserId;
         }
 
-        public async Task SendMessageAsync(string chatName, string message)
+        public async Task<string> GetDisplayName()
+        {
+            var tokens = await _skype.GetTokensAsync();
+            return tokens.DisplayName;
+        }
+
+        public async Task<SentSkypeMessage> SendMessageAsync(string chatName, string message)
         {
             var tokens = await _skype.GetTokensAsync();
             var chatId = await GetChatRoomByNameAsync(tokens, chatName);
-            await _skypeService.SendMessageAsync(
+            var response = await _skypeService.SendMessageAsync(
                 tokens.BaseUrl,
                 tokens.RegistrationToken,
                 chatId,
+                tokens.DisplayName,
                 message
             );
             _logger.LogInformation("Sent message:\"{message}\" to chat: {chatName}", message, chatName);
+
+            return new SentSkypeMessage(_skype, _skypeService)
+            {
+                Message = message,
+                ChatName = chatName,
+                ChatID = chatId,
+                Location = response.Headers["Location"],
+                OriginalArriveTime = response.Content
+            };
         }
 
         public async Task<List<SkypeMessage>> PoolMessagesAsync()
@@ -78,7 +95,8 @@ namespace SkSharp.PublicHosted
                 throw new Exception("Failed to get messages");
             }
 
-            var skypeMessages = messageResponse.Content.EventMessages.Select(eventMessage => new SkypeMessage(_skype, _skypeService)
+            var skypeMessages = messageResponse.Content.EventMessages.Where(eventMessage => !string.IsNullOrEmpty(eventMessage.Resource.Clientmessageid))
+            .Select(eventMessage => new SkypeMessage(_skype, _skypeService)
             {
                 MessageType = eventMessage.Resource.Messagetype,
                 Message = eventMessage.Resource.Content,

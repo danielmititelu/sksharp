@@ -42,11 +42,12 @@ namespace SkSharp.Services
             var securityToken = await _skypeService.GetSecurityToken(_options.Username, _options.Password);
             var (skypeToken, expiresIn) = await _skypeService.GetSkypeToken(securityToken);
             var (registrationToken, baseUrl, endpointId) = await _skypeService.GetRegistrationToken(skypeToken);
-            var userId = await _skypeService.GetUsername(skypeToken);
+            var details = await _skypeService.GetUsername(skypeToken);
 
             _loginTokens = new LoginTokens
             {
-                UserId = userId,
+                UserId = details.UserId,
+                DisplayName = details.DisplayName,
                 SkypeToken = skypeToken,
                 RegistrationToken = registrationToken,
                 BaseUrl = baseUrl,

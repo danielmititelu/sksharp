@@ -140,6 +140,27 @@ internal class RestService
         };
     }
 
+    internal async Task<RestResponse> PutJson(string url, object data, Dictionary<string, string>? headers = null)
+    {
+        var request = JsonContent.Create(data);
+        if (headers != null)
+        {
+            foreach (var header in headers)
+            {
+                request.Headers.Add(header.Key, header.Value);
+            }
+        }
+
+        var response = await _httpClient.PutAsync(url, request);
+
+        return new RestResponse
+        {
+            Content = await response.Content.ReadAsStringAsync(),
+            StatusCode = response.StatusCode,
+            Headers = response.Headers.ToDictionary(x => x.Key, x => x.Value.FirstOrDefault() ?? string.Empty)
+        };
+    }
+
     internal async Task<T> PostJson<T>(string url, object data, Dictionary<string, string>? headers = null)
     {
         var request = JsonContent.Create(data);

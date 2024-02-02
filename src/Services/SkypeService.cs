@@ -5,6 +5,7 @@ using SkSharp.Models.SkypeApiModels;
 using System.Text.RegularExpressions;
 using System.Xml.Serialization;
 using SkSharp.Models.Public;
+using System;
 
 namespace SkSharp;
 
@@ -114,13 +115,13 @@ public class SkypeService
         return (registrationToken, baseUrl, endpointId);
     }
 
-    internal async Task<string> GetUsername(string skypeToken)
+    internal async Task<(string UserId, string DisplayName)> GetUsername(string skypeToken)
     {
         var headers = new Dictionary<string, string>{
                 { "X-SkypeToken", skypeToken }
         };
         var userDetails = await _restService.Get<UserDetails>("https://api.skype.com/users/self/profile", headers);
-        return userDetails.Username;
+        return (userDetails.Username, $"{userDetails.Firstname} {userDetails.Lastname}");
     }
 
     internal async Task<FileDetails> DownloadMessageAttachement(string skypeToken, SkypeMessage message, string savePath, IProgress<float> progress = null)
@@ -163,13 +164,47 @@ public class SkypeService
         return await _restService.Get<Chats>($"{baseUrl}/v1/users/ME/conversations", headers, queryParameters);
     }
 
-    internal async Task SendMessageAsync(string baseUrl, string registrationToken, string chatId, string message)
+    internal async Task<RestResponse> EditMessageAsync(string location, string registrationToken,
+                                                       string displayName,
+                                                       string message, string originalArriveTime, string messageType = "Text")
     {
+        //var realContent = $"{message}<e_m a=\"live:.cid.6f340b045df93b21\" ts_ms=\"{originalArriveTime}\" ts=\"{originalArriveTime.Substring(0, originalArriveTime.Length - 4)}\" t=\"61\"></e_m>";
+
         var body = new
         {
-            Content = message,
-            Messagetype = "Text",
-            Contenttype = "text",
+            content = message,
+            messagetype = messageType,
+            contenttype = "text",
+            editid = location.Split('/').Last(),
+            imdisplayname = displayName
+        };
+
+        var headers = new Dictionary<string, string> {
+                { "RegistrationToken", registrationToken },
+                { "ClientInfo", "os=Windows; osVer=10; proc=x86; lcid=en-US; deviceType=1; country=US; clientName=skype4life; clientVer=1418/9.99.0.999//skype4life" }
+        };
+        var response = await _restService.PutJson(location, body, headers);
+        if (response.StatusCode != HttpStatusCode.OK)
+        {
+            throw new Exception($"Could not send message, got {response.StatusCode}");
+        }
+
+        return response;
+    }
+
+    internal async Task<RestResponse> SendMessageAsync(string baseUrl, string registrationToken, string chatId,
+                                                       string displayName,
+                                                       string message, string messageType = "Text")
+    {
+
+        var body = new
+        {
+            clientmessageid = MessageUtils.NewClientMessageId(),
+            //ComposeTime = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffK"),
+            content = message,
+            messagetype = messageType,
+            contenttype = "text",
+            imdisplayname = displayName,
         };
 
         var headers = new Dictionary<string, string> {
@@ -181,6 +216,8 @@ public class SkypeService
         {
             throw new Exception($"Could not send message, got {response.StatusCode}");
         }
+
+        return response;
     }
 
     internal async Task<RestResponse> Subscribe(string baseUrl, string registrationToken, string endpointId)
@@ -206,7 +243,7 @@ public class SkypeService
             { "RegistrationToken", registrationToken }
         };
         var endpoint = WebUtility.UrlEncode(endpointId);
-        
+
         try
         {
             return await _restService.Post<SkypeEvent>($"{baseUrl}/v1/users/ME/endpoints/{endpoint}/subscriptions/0/poll", headers);
