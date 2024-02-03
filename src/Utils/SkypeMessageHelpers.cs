@@ -5,6 +5,17 @@ namespace SkSharp.Utils
 {
     public static class SkypeMessageHelpers
     {
+        private static SkypeEmotes _hardcodedEmotes = new SkypeEmotes()
+        {
+            items = new List<Item>()
+            {
+                new Item() { id = "2714_heavycheckmark", shortcuts = new List<string>() { "(heavycheckmark)" } },
+                new Item() { id = "274c_crossmark", shortcuts = new List<string>() { "(crossmark)" } },
+                new Item() { id = "porgsurprised", shortcuts = new List<string>() { "(porgsurprised)" } },
+                new Item() { id = "1f528_hammer", shortcuts = new List<string>() { "(hammer)" } }
+            }
+        };
+
         private static SkypeEmotes _emotes;
 
         private static SkypeEmotes GetSkypeEmotes()
@@ -42,14 +53,31 @@ namespace SkSharp.Utils
             return $"<a href=\"{url}\">{display ?? url}</a>";
         }
 
-        public static  string Emote(string shortcut)
+        public static string Emote(string shortcut, SkypeEmotes extraEmotes = null)
         {
+            foreach (var emote in _hardcodedEmotes.items)
+            {
+                if (shortcut == emote.id)
+                    return $"<ss type=\"{shortcut}\">{emote.shortcuts[0]}</ss>";
+                else if (emote.shortcuts.Contains(shortcut))
+                    return $"<ss type=\"{emote.id}\">{shortcut}</ss>";
+            }
             foreach (var emote in GetSkypeEmotes().items)
             {
                 if (shortcut == emote.id)
                     return $"<ss type=\"{shortcut}\">{emote.shortcuts[0]}</ss>";
                 else if (emote.shortcuts.Contains(shortcut))
                     return $"<ss type=\"{emote.id}\">{shortcut}</ss>";
+            }
+            if (extraEmotes != null)
+            {
+                foreach (var emote in extraEmotes.items)
+                {
+                    if (shortcut == emote.id)
+                        return $"<ss type=\"{shortcut}\">{emote.shortcuts[0]}</ss>";
+                    else if (emote.shortcuts.Contains(shortcut))
+                        return $"<ss type=\"{emote.id}\">{shortcut}</ss>";
+                }
             }
             return shortcut;
         }
