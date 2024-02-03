@@ -1,4 +1,5 @@
 using SkSharp.PublicHosted;
+using SkSharp.Services;
 using SkSharp.Utils;
 
 namespace WorkerService
@@ -20,7 +21,7 @@ namespace WorkerService
             var displayName = await _skSharpChat.GetDisplayName();
             var chatName = "Builds";
 
-            await _skSharpChat.SendMessageAsync(chatName, "Reporting for duty!");
+            await _skSharpChat.SendRichTextMessageAsync(chatName, $"{SkypeMessageHelpers.Emote("finger")} {SkypeMessageHelpers.Italic("Reporting for duty!")}");
 
             while (!stoppingToken.IsCancellationRequested)
             {

@@ -1,17 +1,14 @@
-using System.Xml.Linq;
-using System.Net;
-using SkSharp.Utils;
-using SkSharp.Models.SkypeApiModels;
-using System.Text.RegularExpressions;
-using System.Xml.Serialization;
 using SkSharp.Models.Public;
-using System;
+using SkSharp.Models.SkypeApiModels;
+using SkSharp.Utils;
+using System.Net;
+using System.Xml.Linq;
 
 namespace SkSharp;
 
 public class SkypeService
 {
-    readonly RestService _restService;
+    private readonly RestService _restService;
 
     public SkypeService()
     {

@@ -36,7 +36,12 @@ namespace SkSharp.PublicHosted
             return tokens.DisplayName;
         }
 
-        public async Task<SentSkypeMessage> SendMessageAsync(string chatName, string message)
+        public async Task<SentSkypeMessage> SendRichTextMessageAsync(string chatName, string message)
+        {
+            return await SendMessageAsync(chatName, message, "RichText");
+        }
+
+        public async Task<SentSkypeMessage> SendMessageAsync(string chatName, string message, string messageType = "Text")
         {
             var tokens = await _skype.GetTokensAsync();
             var chatId = await GetChatRoomByNameAsync(tokens, chatName);
@@ -45,7 +50,8 @@ namespace SkSharp.PublicHosted
                 tokens.RegistrationToken,
                 chatId,
                 tokens.DisplayName,
-                message
+                message,
+                messageType
             );
             _logger.LogInformation("Sent message:\"{message}\" to chat: {chatName}", message, chatName);
 
