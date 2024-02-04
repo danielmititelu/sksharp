@@ -21,7 +21,7 @@ namespace WorkerService
             var displayName = await _skSharpChat.GetDisplayName();
             var chatName = "Builds";
 
-            await _skSharpChat.SendRichTextMessageAsync(chatName, $"{SkypeMessageHelpers.Emote("finger")} {SkypeMessageHelpers.Italic("Reporting for duty!")} {SkypeMessageHelpers.Emote("checkmark")}{SkypeMessageHelpers.Emote("checkmark")}{SkypeMessageHelpers.Emote("checkmark")}");
+            await _skSharpChat.SendRichTextMessageAsync(chatName, $"{SkypeMessageHelpers.Emote("crossmark")} {SkypeMessageHelpers.Emote("heavycheckmark")} {SkypeMessageHelpers.Italic("Reporting for duty!")} {SkypeMessageHelpers.Emote("crossmark")}{SkypeMessageHelpers.Emote("crossmark")}{SkypeMessageHelpers.Emote("crossmark")}");
 
             while (!stoppingToken.IsCancellationRequested)
             {

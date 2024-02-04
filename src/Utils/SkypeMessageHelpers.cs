@@ -9,10 +9,10 @@ namespace SkSharp.Utils
         {
             items = new List<Item>()
             {
-                new Item() { id = "2714_heavycheckmark", shortcuts = new List<string>() { "(heavycheckmark)" } },
-                new Item() { id = "274c_crossmark", shortcuts = new List<string>() { "(crossmark)" } },
-                new Item() { id = "porgsurprised", shortcuts = new List<string>() { "(porgsurprised)" } },
-                new Item() { id = "1f528_hammer", shortcuts = new List<string>() { "(hammer)" } }
+                new Item() { id = "2714_heavycheckmark", shortcuts = new List<string>() { "heavycheckmark" } },
+                new Item() { id = "274c_crossmark", shortcuts = new List<string>() { "crossmark" } },
+                new Item() { id = "porgsurprised", shortcuts = new List<string>() { "porgsurprised" } },
+                new Item() { id = "1f528_hammer", shortcuts = new List<string>() { "hammer" } }
             }
         };
 
