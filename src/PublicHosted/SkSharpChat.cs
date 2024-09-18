@@ -48,6 +48,7 @@ namespace SkSharp.PublicHosted
             var response = await _skypeService.SendMessageAsync(
                 tokens.BaseUrl,
                 tokens.RegistrationToken,
+                $"skypetoken={tokens.SkypeToken}",
                 chatId,
                 tokens.DisplayName,
                 message,

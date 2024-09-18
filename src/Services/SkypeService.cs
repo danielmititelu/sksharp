@@ -189,7 +189,7 @@ public class SkypeService
         return response;
     }
 
-    internal async Task<RestResponse> SendMessageAsync(string baseUrl, string registrationToken, string chatId,
+    internal async Task<RestResponse> SendMessageAsync(string baseUrl, string registrationToken, string authenticationToken, string chatId,
                                                        string displayName,
                                                        string message, string messageType = "Text")
     {
@@ -206,6 +206,7 @@ public class SkypeService
 
         var headers = new Dictionary<string, string> {
                 { "RegistrationToken", registrationToken },
+                { "Authentication", authenticationToken },
                 { "ClientInfo", "os=Windows; osVer=10; proc=x86; lcid=en-US; deviceType=1; country=US; clientName=skype4life; clientVer=1418/9.99.0.999//skype4life" }
         };
         var response = await _restService.PostJson($"{baseUrl}/v1/users/ME/conversations/{chatId}/messages", body, headers);
